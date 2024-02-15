@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kundenkarte mit Info-Symbolen und Routenplaner</title>
+    <!-- Lade Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 500px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Erstelle eine Container-Div für die Karte -->
+<div id="map"></div>
+
+<!-- Lade Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+    // Initialisiere die Karte
+    var mymap = L.map('map').setView([51.1657, 10.4515], 6);
+
+    // Füge die OpenStreetMap-Kartenschicht hinzu
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mymap);
+
+    // Icons definieren
+    var tractorIcon = L.icon({
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        tooltipAnchor: [16, -28],
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        shadowSize: [41, 41]
+    });
+
+    // Kunden mit ihren Standorten und Informationen
+    var customers = [
+        {
+            name: "Landtechnik Müller Hans",
+            location: [48.7837, 9.1892], // Koordinaten für Stuttgart
+            address: "Musterstraße 10, 12345 Musterstadt",
+            phone: "0123-456789",
+            email: "mueller@landtechnik.de"
+        },
+        {
+            name: "Agrar Servide Schmidt",
+            location: [51.1657, 10.4515], // Koordinaten für Musterstadt
+            address: "Beispielweg 15, 23456 Beispielburg",
+            phone: "0234-567890",
+            email: "schmidt@agrar.de"
+        },
+        {
+            name: "Bauer Huber AG",
+            location: [51.1223, 13.7267], // Koordinaten für Dresden
+            address: "Hauptallee 20, 34567 Hauptdorf",
+            phone: "03456-678901",
+            email: "huber@bauernhof.de"
+        },
+        {
+            name: "Grünfeld AG, Lisa Grün",
+            location: [50.1109, 8.6821], // Koordinaten für Frankfurt
+            address: "Nebenstraße 5, 45678 Nebenhausen",
+            phone: "0456-78901",
+            email: "gruen@gruenfeld.ag"
+        },
+        {
+            name: "Feldwerk KG, Max Feld",
+            location: [52.5200, 13.4050], // Koordinaten für Berlin
+            address: "Gartenweg 3, 56789 Gartendorf",
+            phone: "0567-890123",
+            email: "feld@feldwerk.kg"
+
+        },
+        {
+            name: "Ackerguide",
+            location: [48.93322, 8.96039], // Koordinaten für "Katharinenstraße 6, 71665 Vaihingen an der Enz"
+            address: "Katharinenstraße 6, 71665 Vaihingen an der Enz"
+        }
+    ];
+
+    // Kundenstandorte mit Info-Symbolen und Popups hinzufügen
+    customers.forEach(function(customer) {
+        // Marker für Kundenstandort hinzufügen
+        var marker = L.marker(customer.location, {icon: tractorIcon}).addTo(mymap);
+
+        // Popup mit Kundeninformationen und Button "Route planen" erstellen
+        var popupContent = "<b>" + customer.name + "</b><br>" +
+            "Adresse: " + customer.address + "<br><br>" + "Telefon: " + customer.phone + "<br><br>" + "E-Mail:" + customer.email + "<br><br>" +
+            "<button onclick=\"planRoute('" + customer.address + "')\">Route planen</button>";
+
+        // Popup zum Marker hinzufügen
+        marker.bindPopup(popupContent);
+    });
+
+    // Standorterkennung aufrufen
+    getLocation();
+
+    // Funktion zum Planen einer Route
+    function planRoute(address) {
+        // Generiere die URL für die Directions API von Google
+        var url = "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(address);
+
+        // Öffne den Link in einem neuen Tab
+        window.open(url, '_blank');
+    }
+</script>
+
+</body>
+</html>
