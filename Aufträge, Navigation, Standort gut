@@ -50,8 +50,8 @@
     var customers = [
         {
             name: "Landtechnik Müller Hans",
-            location: [48.7837, 9.1892], // Koordinaten für Stuttgart
-            address: "Musterstraße 10, 12345 Musterstadt",
+            location: [47.6595, 9.4783], // Koordinaten für Friedrichshafen
+            address: "Am Seemooser Horn 20, 88045 Friedrichshafen",
             phone: "0123-456789",
             email: "mueller@landtechnik.de",
             order: "Traktor GPS-Installation",
@@ -59,9 +59,9 @@
             duration: 3
         },
         {
-            name: "Agrar Servide Schmidt",
-            location: [51.1657, 10.4515], // Koordinaten für Musterstadt
-            address: "Beispielweg 15, 23456 Beispielburg",
+            name: "Agrar Service Schmidt",
+            location: [47.6607, 9.1751], // Koordinaten für Konstanz
+            address: "Alfred-Wachtel-Straße 8, 78462 Konstanz",
             phone: "0234-567890",
             email: "schmidt@agrar.de",
             order: "Lenksystem-Upgrade",
@@ -70,8 +70,8 @@
         },
         {
             name: "Bauer Huber GmbH",
-            location: [51.1223, 13.7267], // Koordinaten für Dresden
-            address: "Hauptallee 20, 34567 Hauptdorf",
+            location: [47.7238, 10.3121], // Koordinaten für Kempten
+            address: "Bahnhofstraße 61, 87435 Kempten",
             phone: "03456-678901",
             email: "huber@bauernhof.de",
             order: "GPS-Antennenmontage",
@@ -80,8 +80,8 @@
         },
         {
             name: "Grünfeld AG",
-            location: [50.1109, 8.6821], // Koordinaten für Frankfurt
-            address: "Nebenstraße 5, 45678 Nebenhausen",
+            location: [47.7752, 9.6128], // Koordinaten für Ravensburg
+            address: "Marienplatz 2, 88212 Ravensburg",
             phone: "0456-78901",
             email: "gruen@gruenfeld.ag",
             order: "Feldkartierung mit GPS",
@@ -89,16 +89,16 @@
             duration: 5
         },
         {
-            name: "Fedlwerk KG",
-            location: [52.5200, 13.4050], // Koordinaten für Berlin
-            address: "Gartenweg 3, 56789 Gartendorf",
+            name: "Feldwerk KG",
+            location: [48.1011, 9.7908], // Koordinaten für Biberach
+            address: "Karlstraße 11, 88400 Biberach",
             phone: "0567-890123",
             email: "feld@feldwerk.kg",
             order: "Automatische Lenkassistenz",
             dueDate: "25.02.2024",
             duration: 4
-
         },
+
         {
             name: "Ackerguide",
             location: [48.93322, 8.96039], // Koordinaten für "Katharinenstraße 6, 71665 Vaihingen an der Enz"
