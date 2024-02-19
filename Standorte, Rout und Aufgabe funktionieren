@@ -54,7 +54,7 @@
             phone: "0123-456789",
             email: "mueller@landtechnik.de",
             order: "Traktor GPS-Installation",
-            dueDate: "15.02.2024",
+            dueDate: "2024-02-15",
             duration: 3
         },
         {
@@ -63,7 +63,7 @@
             phone: "0234-567890",
             email: "schmidt@agrar.de",
             order: "Lenksystem-Upgrade",
-            dueDate: "01.03.2024",
+            dueDate: "2024-03-01",
             duration: 2
         },
         {
@@ -72,7 +72,7 @@
             phone: "03456-678901",
             email: "huber@bauernhof.de",
             order: "GPS-Antennenmontage",
-            dueDate: "20.02.2024",
+            dueDate: "2024-02-20",
             duration: 1
         },
         {
@@ -81,7 +81,7 @@
             phone: "0456-78901",
             email: "gruen@gruenfeld.ag",
             order: "Feldkartierung mit GPS",
-            dueDate: "10.03.2024",
+            dueDate: "2024-03-10",
             duration: 5
         },
         {
@@ -90,7 +90,7 @@
             phone: "0567-890123",
             email: "feld@feldwerk.kg",
             order: "Automatische Lenkassistenz",
-            dueDate: "25.02.2024",
+            dueDate: "2024-02-25",
             duration: 4
         },
 
@@ -119,32 +119,71 @@
             });
     }
 
-    // Marker für Kundenstandorte nach dem Geokodieren der Adressen hinzufügen
-    customers.forEach(function(customer) {
-        if (customer.address) {
-            geocodeAddress(customer.address, function(result) {
-                if (result.success) {
-                    var lat = result.lat;
-                    var lon = result.lon;
-                    // Marker für Kundenstandort hinzufügen
-                    var marker = L.marker([lat, lon], {icon: tractorIcon}).addTo(mymap);
+    // Funktion zum Berechnen der Entfernung zwischen zwei Koordinaten (in Kilometern)
+    function calcCrow(lat1, lon1, lat2, lon2) {
+        var R = 6371; // Radius der Erde in km
+        var dLat = toRad(lat2 - lat1);
+        var dLon = toRad(lon2 - lon1);
+        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        var d = R * c; // Entfernung in km
+        return d;
+    }
 
-                    // Popup mit Kundeninformationen und Buttons
-                    var popupContent = "<b>" + customer.name + "</b><br>" +
-                        "Adresse: " + customer.address + "<br><br>" +
-                        "Telefon: " + customer.phone + "<br><br>" +
-                        "E-Mail: " + customer.email + "<br><br>" +
-                        "<button onclick=\"planRoute('" + lat + "', '" + lon + "')\">Route planen</button>" + "&nbsp;" +
-                        "<button onclick=\"viewOrder('" + customer.order + "', '" + customer.dueDate + "', " + customer.duration + ")\">Auftrag ansehen</button>";
+    // Funktion zum Konvertieren von Grad in Radian
+    function toRad(Value) {
+        return Value * Math.PI / 180;
+    }
 
-                    // Popup zum Marker hinzufügen
-                    marker.bindPopup(popupContent);
-                } else {
-                    console.error(result.error);
-                }
-            });
-        }
-    });
+    // Funktion zum Anzeigen der aktuellen Position des Benutzers
+    function markCurrentLocation(position) {
+        var latitude = position.coords.latitude;
+        var longitude = position.coords.longitude;
+
+        // Add a marker for user's location
+        var marker = L.marker([latitude, longitude]).addTo(mymap);
+
+        // Add a popup to the marker for the user's location
+        marker.bindPopup("Dein Standort").openPopup();
+
+        // Filter customers based on distance (30km) and add markers to the map
+        customers.forEach(function(customer) {
+            if (customer.address) {
+                geocodeAddress(customer.address, function(result) {
+                    if (result.success) {
+                        var lat = result.lat;
+                        var lon = result.lon;
+
+                        // Calculate distance between user and customer
+                        var distance = calcCrow(latitude, longitude, lat, lon);
+
+                        if (distance <= 30) {
+                            // Marker für Kundenstandort hinzufügen
+                            var marker = L.marker([lat, lon], {icon: tractorIcon}).addTo(mymap);
+
+                            // Popup mit Kundeninformationen und Buttons
+                            var popupContent = "<b>" + customer.name + "</b><br>" +
+                                "Adresse: " + customer.address + "<br><br>" +
+                                "Telefon: " + customer.phone + "<br><br>" +
+                                "E-Mail: " + customer.email + "<br><br>" +
+                                "<button onclick=\"planRoute(" + latitude + ", " + longitude + ", " + lat + ", " + lon + ")\">Route planen</button>" + "&nbsp;" +
+                                "<button onclick=\"viewOrder('" + customer.order + "', '" + customer.dueDate + "', " + customer.duration + ")\">Auftrag ansehen</button>";
+
+                            // Popup zum Marker hinzufügen
+                            marker.bindPopup(popupContent);
+                        }
+                    } else {
+                        console.error(result.error);
+                    }
+                });
+            }
+        });
+
+        // Center the map on the user's location
+        mymap.setView([latitude, longitude], 10);
+    }
 
     // Funktion zum Anzeigen der Auftragsdetails in einem Popup-Fenster
     function viewOrder(order, dueDate, duration) {
@@ -159,22 +198,14 @@
     }
 
     // Funktion zum Planen einer Route
-    function planRoute(lat, lon) {
-        var url = "https://www.google.com/maps/dir/?api=1&destination=" + lat + "," + lon;
+    function planRoute(userLat, userLon, destLat, destLon) {
+        var url = "https://www.google.com/maps/dir/?api=1&origin=" + userLat + "," + userLon + "&destination=" + destLat + "," + destLon;
         window.open(url, '_blank');
-    }
-
-    // Funktion zur Anzeige der aktuellen Position des Benutzers
-    function markCurrentLocation(position) {
-        var latitude = position.coords.latitude;
-        var longitude = position.coords.longitude;
-
-        var marker = L.marker([latitude, longitude]).addTo(mymap);
-        marker.bindPopup("Dein Standort").openPopup();
     }
 
     // Funktion zum Abrufen der aktuellen Position des Benutzers
     function getLocation() {
+        console.log("Getting user's location...");
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(markCurrentLocation);
         } else {
@@ -184,6 +215,7 @@
 
     // Funktion aufrufen, um die aktuelle Position des Benutzers zu erhalten
     getLocation();
+
 </script>
 
 </body>
