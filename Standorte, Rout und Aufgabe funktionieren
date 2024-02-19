@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kundenkarte mit Info-Symbolen und Routenplaner</title>
+    <!-- Leaflet CSS laden -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <!-- Alertify CSS laden -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/css/alertify.min.css" />
+    <!-- Optionales Alertify Theme CSS laden -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/css/themes/default.min.css" />
+    <style>
+        #map {
+            height: 500px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Container-Div für die Karte erstellen -->
+<div id="map"></div>
+
+<!-- Leaflet JavaScript laden -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- Alertify JavaScript laden -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/alertify.min.js"></script>
+
+<script>
+    // Initialisiere die Karte
+    var mymap = L.map('map').setView([51.1657, 10.4515], 6);
+
+    // Füge die OpenStreetMap-Kartenschicht hinzu
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mymap);
+
+    // Icons definieren
+    var tractorIcon = L.icon({
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        tooltipAnchor: [16, -28],
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        shadowSize: [41, 41]
+    });
+
+    // Kunden mit ihren Standorten und Informationen
+    var customers = [
+        {
+            name: "Landtechnik Müller Hans",
+            address: "Am Seemooser Horn 20, 88045 Friedrichshafen",
+            phone: "0123-456789",
+            email: "mueller@landtechnik.de",
+            order: "Traktor GPS-Installation",
+            dueDate: "15.02.2024",
+            duration: 3
+        },
+        {
+            name: "Agrar Service Schmidt",
+            address: "Alfred-Wachtel-Straße 8, 78462 Konstanz",
+            phone: "0234-567890",
+            email: "schmidt@agrar.de",
+            order: "Lenksystem-Upgrade",
+            dueDate: "01.03.2024",
+            duration: 2
+        },
+        {
+            name: "Bauer Huber GmbH",
+            address: "Bahnhofstraße 61, 87435 Kempten",
+            phone: "03456-678901",
+            email: "huber@bauernhof.de",
+            order: "GPS-Antennenmontage",
+            dueDate: "20.02.2024",
+            duration: 1
+        },
+        {
+            name: "Grünfeld AG",
+            address: "Marienplatz 2, 88212 Ravensburg",
+            phone: "0456-78901",
+            email: "gruen@gruenfeld.ag",
+            order: "Feldkartierung mit GPS",
+            dueDate: "10.03.2024",
+            duration: 5
+        },
+        {
+            name: "Feldwerk KG",
+            address: "Karlstraße 11, 88400 Biberach",
+            phone: "0567-890123",
+            email: "feld@feldwerk.kg",
+            order: "Automatische Lenkassistenz",
+            dueDate: "25.02.2024",
+            duration: 4
+        },
+
+        {
+            name: "Ackerguide",
+            address: "Katharinenstraße 6, 71665 Vaihingen an der Enz"
+        }
+    ];
+
+    // Funktion zum Geokodieren einer Adresse mit Nominatim
+    function geocodeAddress(address, callback) {
+        var url = "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" + encodeURIComponent(address);
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    var lat = data[0].lat;
+                    var lon = data[0].lon;
+                    callback({ success: true, lat: lat, lon: lon });
+                } else {
+                    callback({ success: false, error: "Adresse nicht gefunden: " + address });
+                }
+            })
+            .catch(error => {
+                callback({ success: false, error: error });
+            });
+    }
+
+    // Marker für Kundenstandorte nach dem Geokodieren der Adressen hinzufügen
+    customers.forEach(function(customer) {
+        if (customer.address) {
+            geocodeAddress(customer.address, function(result) {
+                if (result.success) {
+                    var lat = result.lat;
+                    var lon = result.lon;
+                    // Marker für Kundenstandort hinzufügen
+                    var marker = L.marker([lat, lon], {icon: tractorIcon}).addTo(mymap);
+
+                    // Popup mit Kundeninformationen und Buttons
+                    var popupContent = "<b>" + customer.name + "</b><br>" +
+                        "Adresse: " + customer.address + "<br><br>" +
+                        "Telefon: " + customer.phone + "<br><br>" +
+                        "E-Mail: " + customer.email + "<br><br>" +
+                        "<button onclick=\"planRoute('" + lat + "', '" + lon + "')\">Route planen</button>" + "&nbsp;" +
+                        "<button onclick=\"viewOrder('" + customer.order + "', '" + customer.dueDate + "', " + customer.duration + ")\">Auftrag ansehen</button>";
+
+                    // Popup zum Marker hinzufügen
+                    marker.bindPopup(popupContent);
+                } else {
+                    console.error(result.error);
+                }
+            });
+        }
+    });
+
+    // Funktion zum Anzeigen der Auftragsdetails in einem Popup-Fenster
+    function viewOrder(order, dueDate, duration) {
+        var popupContent = "<div style='text-align: left; padding: 10px;'>" +
+            "<h3 style='margin-bottom: 10px;'>Auftragsdetails</h3>" +
+            "<p><b>Auftrag:</b> " + order + "</p>" +
+            "<p><b>Fälligkeitsdatum:</b> " + dueDate + "</p>" +
+            "<p><b>Geschätzte Dauer (Tage):</b> " + duration + "</p>" +
+            "</div>";
+
+        alertify.alert('Auftragsdetails', popupContent).set({transition:'zoom'}).show();
+    }
+
+    // Funktion zum Planen einer Route
+    function planRoute(lat, lon) {
+        var url = "https://www.google.com/maps/dir/?api=1&destination=" + lat + "," + lon;
+        window.open(url, '_blank');
+    }
+
+    // Funktion zur Anzeige der aktuellen Position des Benutzers
+    function markCurrentLocation(position) {
+        var latitude = position.coords.latitude;
+        var longitude = position.coords.longitude;
+
+        var marker = L.marker([latitude, longitude]).addTo(mymap);
+        marker.bindPopup("Dein Standort").openPopup();
+    }
+
+    // Funktion zum Abrufen der aktuellen Position des Benutzers
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(markCurrentLocation);
+        } else {
+            console.error("Geolokalisierung wird von diesem Browser nicht unterstützt.");
+        }
+    }
+
+    // Funktion aufrufen, um die aktuelle Position des Benutzers zu erhalten
+    getLocation();
+</script>
+
+</body>
+</html>
