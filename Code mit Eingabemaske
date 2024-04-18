@@ -186,7 +186,7 @@
     // Funktion zum Anzeigen der Eingabemaske
     function toggleCustomerForm() {
         var customerForm = document.getElementById("customerCard");
-        if (customerForm.style.display === "none") {
+        if (customerForm.style.display === "none" || customerForm.style.display === "") {
             customerForm.style.display = "block";
         } else {
             customerForm.style.display = "none";
