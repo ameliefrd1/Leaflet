@@ -2,7 +2,6 @@
 Mit diesem Code erhalten Mitarbeitende einer Firma in der Landwirtschaftstechnik die Möglichkeit, Kundenaufträge und ihre Auftragsdauer zu optimieren.
 
 # Voraussetzungen 
-Lizenz (The Unlicense)
 Server 
 Webstorm
 Javascript
@@ -31,3 +30,9 @@ Wenn der Benutzende auf eines der Icons klickt, erhält er die Möglichkeit sich
 
 # Bereitstellung
 Der Code wird ausschließlich der Firma zur Verfügung gestellt. Mitarbeitende erhalten Informationen sowie Anmeldedaten von Ihrem Arbeitgeber. Die Nutzung ist sowohl über mobile Endgeräte als auch Computer möglich. 
+
+# Lizenz
+Diese Prohjekt ist unter der Unlicense lizensiert. Siehe die LICENSE-Datei für weitere Detaile. 
+
+# Mitwirkung
+Eine Mitwirkung ist ausschließlich den Beteiligten der Firma gestattet. Falls Mitwirkungen angegeben werden sollen/ wollen, muss hier die Zustimmung der Firma erfolgen und Kontakt aufgenommen werden.
