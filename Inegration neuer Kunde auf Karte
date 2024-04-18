@@ -68,7 +68,7 @@
 <!-- Eingabemaske für neue Kundendaten -->
 <div class="customer-card" id="customerCard">
     <span class="close-button" onclick="toggleCustomerForm()">X</span> <!-- Schließen-Symbol -->
-    <h3>Neuen Kunden hinzufügen</h3>
+    <h3 id="customerFormTitle">Neuen Kunden hinzufügen</h3>
     <label for="name">Name:</label><br>
     <input type="text" id="name" name="name" required><br>
     <label for="address">Adresse:</label><br>
@@ -79,11 +79,11 @@
     <input type="email" id="email" name="email" required><br>
     <label for="dueDate">Fälligkeitsdatum:</label><br>
     <input type="text" id="dueDate" name="dueDate" required><br>
-    <label for="duration">Dauer (Tage):</label><br>
+    <label for="duration">Geschätzte Dauer (Tage):</label><br>
     <input type="number" id="duration" name="duration" required><br>
     <label for="orderDetails">Auftragsdetails:</label><br>
     <textarea id="orderDetails" name="orderDetails" rows="4" cols="40"></textarea><br>
-    <button onclick="addCustomer()">Kunden hinzufügen</button>
+    <button id="addCustomerButton" onclick="addOrUpdateCustomer()">Kunden hinzufügen</button>
     <button onclick="toggleCustomerForm()">Abbrechen</button> <!-- Abbrechen-Option -->
 </div>
 
@@ -172,67 +172,40 @@
         }
     ];
 
+    customers.forEach(function(customer) {
+        var marker = L.marker(customer.location, {icon: tractorIconBlack}).addTo(mymap);
+        var popupContent = "<b>" + customer.name + "</b><br>" +
+            "Adresse: " + customer.address + "<br><br>" +
+            "Telefon: " + customer.phone + "<br><br>" +
+            "E-Mail: " + customer.email + "<br><br>" +
+            "<button onclick=\"planRoute('" + customer.address + "')\">Route planen</button>" + "&nbsp;" +
+            "<button onclick=\"viewOrder('" + customer.order + "', '" + customer.dueDate + "', " + customer.duration + ")\">Auftrag ansehen</button>" +
+            "<button onclick=\"editCustomer('" + customer.name + "', '" + customer.address + "', '" + customer.phone + "', '" + customer.email + "', '" + customer.dueDate + "', " + customer.duration + ", '" + customer.order + "')\">Bearbeiten</button>";
+        marker.bindPopup(popupContent);
+    });
+
     // Funktion zum Anzeigen der Eingabemaske
     function toggleCustomerForm() {
         var customerForm = document.getElementById("customerCard");
-        if (customerForm.style.display === "none" || customerForm.style.display === "") {
+        if (customerForm.style.display === "none") {
             customerForm.style.display = "block";
+            document.getElementById("customerFormTitle").innerText = "Neuen Kunden hinzufügen";
+            document.getElementById("addCustomerButton").innerText = "Kunden hinzufügen";
+            clearInputFields(); // Leere die Eingabefelder, wenn das Formular geöffnet wird
         } else {
             customerForm.style.display = "none";
         }
     }
 
-    // Funktion zum Hinzufügen eines neuen Kunden
-    function addCustomer() {
-        var name = document.getElementById("name").value;
-        var address = document.getElementById("address").value;
-        var phone = document.getElementById("phone").value;
-        var email = document.getElementById("email").value;
-        var dueDate = document.getElementById("dueDate").value;
-        var duration = document.getElementById("duration").value;
-
-        // Erstelle einen neuen Kunden
-        var newCustomer = {
-            name: name,
-            address: address,
-            phone: phone,
-            email: email,
-            dueDate: dueDate,
-            duration: duration
-        };
-
-        // Füge den neuen Kunden der Kundenliste hinzu
-        customers.push(newCustomer);
-
-        // Erstelle einen Marker für den neuen Kunden und füge ihn der Karte hinzu
-        var newCustomerMarker = L.marker([0, 0], {icon: tractorIconBlack}).addTo(mymap);
-        newCustomerMarker.bindPopup(getPopupContent(newCustomer)).openPopup();
-
-        // Geocode die Adresse des neuen Kunden, um die Koordinaten zu erhalten
-        var geocodeUrl = "https://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(address);
-
-        fetch(geocodeUrl)
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.length > 0) {
-                    var lat = parseFloat(data[0].lat);
-                    var lon = parseFloat(data[0].lon);
-                    newCustomerMarker.setLatLng([lat, lon]);
-                }
-            })
-            .catch(error => {
-                console.error('Error geocoding address:', error);
-            });
-    }
-
-    // Funktion zum Erstellen des Popup-Inhalts für einen Kunden
-    function getPopupContent(customer) {
-        return "<b>" + customer.name + "</b><br>" +
-            "Adresse: " + customer.address + "<br><br>" +
-            "Telefon: " + customer.phone + "<br><br>" +
-            "E-Mail: " + customer.email + "<br><br>" +
-            "<button onclick=\"planRoute('" + customer.address + "')\">Route planen</button>" + "&nbsp;" +
-            "<button onclick=\"viewOrder('" + customer.order + "', '" + customer.dueDate + "', " + customer.duration + ")\">Auftrag ansehen</button>";
+    // Funktion zum Leeren der Eingabefelder
+    function clearInputFields() {
+        document.getElementById("name").value = "";
+        document.getElementById("address").value = "";
+        document.getElementById("phone").value = "";
+        document.getElementById("email").value = "";
+        document.getElementById("dueDate").value = "";
+        document.getElementById("duration").value = "";
+        document.getElementById("orderDetails").value = "";
     }
 
     // Funktion zum Anzeigen der Auftragsdetails in einem Popup-Fenster
@@ -244,6 +217,29 @@
             "<p><b>Geschätzte Dauer (Tage):</b> " + duration + "</p>" +
             "</div>";
         alertify.alert('Auftragsdetails', popupContent).set({transition:'zoom'}).show();
+    }
+
+    // Funktion zum Bearbeiten eines bestehenden Kunden
+    function editCustomer(name, address, phone, email, dueDate, duration, order) {
+        document.getElementById("name").value = name;
+        document.getElementById("address").value = address;
+        document.getElementById("phone").value = phone;
+        document.getElementById("email").value = email;
+        document.getElementById("dueDate").value = dueDate;
+        document.getElementById("duration").value = duration;
+        document.getElementById("orderDetails").value = order;
+
+        var customerForm = document.getElementById("customerCard");
+        customerForm.style.display = "block";
+        document.getElementById("customerFormTitle").innerText = "Kunde bearbeiten";
+        document.getElementById("addCustomerButton").innerText = "Änderungen speichern";
+    }
+
+    // Funktion zum Hinzufügen oder Bearbeiten eines Kunden
+    function addOrUpdateCustomer() {
+        // Hier kannst du die Logik zum Hinzufügen oder Bearbeiten eines Kunden einfügen
+        // Zum Beispiel: Validierung der Eingaben, Speichern in einer Datenbank usw.
+        toggleCustomerForm(); // Schließe die Eingabemaske nach dem Hinzufügen/Bearbeiten
     }
 
     // Standorterkennung aufrufen
