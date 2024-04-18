@@ -9,6 +9,8 @@ Javascript
 Leaflet
 Schnittstelle zwischen Trello und Leaflet
 Traktor Icons herunterladen 
+Zugriff Google Maps
+Reponsive Design
 
 # Anfänge
 1. Clone the repository:
@@ -21,3 +23,8 @@ Traktor Icons herunterladen
 
 4. Webstorm installieren
 5. html Datei erstellen 
+
+# Anwendung
+Die Karte öffnet sich nach erfolgreicher Anmeldung und fokussiert auf den aktuellen Standort des Benutzenden. Die Karte zeigt Traktor Icons, welche in der Farbe des jeweiligen Fälligkeitsdatums des Kundenauftrags gefärbt sind (grün = , gelb = , rot =, schwarz =).
+Wenn der Benutzende auf eines der Icons klickt, erhält er die Möglichkeit sich den Aufrag genauer anzusehen sowie sich eine Route zum Kunden berechnen zu lassen. Die Routenplanung erfolgt dann extern über GoogleMaps. Der Benutzende wird bei Klick auf den Button "Route planen" zu GoogleMaps weiteregeleitet. 
+Über die Eingabemaske können die Kunden- und Auftragsdaten manuell eingetragen werden. Die entsprechenden Daten werden automatisch auf der Karte aktualisiert (.....).
