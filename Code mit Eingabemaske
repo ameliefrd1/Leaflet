@@ -13,29 +13,45 @@
     <style>
         /* Stil für die Karte */
         #map {
-            height: 80vh; /* Die Kartenhöhe auf 80% der Bildschirmhöhe setzen */
-            width: 100%; /* Die Kartenbreite auf 100% des verfügbaren Bereichs setzen */
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            z-index: 1; /* Stellt sicher, dass die Karte im Vordergrund ist */
         }
 
-        /* Stil für Popup-Inhalte */
-        .popup-content {
-            text-align: left;
-            padding: 10px;
-        }
-
-        /* Stil für Popup-Buttons */
-        .popup-button {
-            margin-top: 10px;
-            margin-right: 5px;
-        }
-
-        /* Stil für Kundenkarten */
-        .customer-card {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            margin-bottom: 10px;
+        /* Stil für das Menüfeld */
+        #menu {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 2; /* Stellt sicher, dass das Menüfeld über der Karte liegt */
+            background-color: rgba(255, 255, 255, 0.8);
             padding: 10px;
             border-radius: 5px;
+        }
+
+        /* Stil für die Eingabemaske */
+        .customer-card {
+            display: none; /* Verstecke die Eingabemaske standardmäßig */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2; /* Stellt sicher, dass die Eingabemaske über der Karte liegt */
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Stil für das Schließen-Symbol */
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -44,13 +60,14 @@
 <!-- Erstelle eine Container-Div für die Karte -->
 <div id="map"></div>
 
-<!-- Lade Leaflet JavaScript -->
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<!-- Lade alertify JavaScript -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/alertify.min.js"></script>
+<!-- Menüfeld mit der Option "Neuen Kunden anlegen" -->
+<div id="menu">
+    <button onclick="toggleCustomerForm()">Neuen Kunden anlegen</button>
+</div>
 
 <!-- Eingabemaske für neue Kundendaten -->
-<div class="customer-card">
+<div class="customer-card" id="customerCard">
+    <span class="close-button" onclick="toggleCustomerForm()">X</span> <!-- Schließen-Symbol -->
     <h3>Neuen Kunden hinzufügen</h3>
     <label for="name">Name:</label><br>
     <input type="text" id="name" name="name" required><br>
@@ -67,7 +84,13 @@
     <label for="orderDetails">Auftragsdetails:</label><br>
     <textarea id="orderDetails" name="orderDetails" rows="4" cols="40"></textarea><br>
     <button onclick="addCustomer()">Kunden hinzufügen</button>
+    <button onclick="toggleCustomerForm()">Abbrechen</button> <!-- Abbrechen-Option -->
 </div>
+
+<!-- Lade Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- Lade alertify JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/alertify.min.js"></script>
 
 <script>
     // Initialisiere die Karte
@@ -81,33 +104,6 @@
     // Icons definieren
     var tractorIconBlack = L.icon({
         iconUrl: 'black_icon.png',
-        iconSize: [42, 42],
-        iconAnchor: [21, 42],
-        popupAnchor: [1, -34],
-        tooltipAnchor: [16, -28],
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        shadowSize: [42, 42]
-    });
-    var tractorIconGreen = L.icon({
-        iconUrl: 'green_icon.png',
-        iconSize: [42, 42],
-        iconAnchor: [21, 42],
-        popupAnchor: [1, -34],
-        tooltipAnchor: [16, -28],
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        shadowSize: [42, 42]
-    });
-    var tractorIconOrange = L.icon({
-        iconUrl: 'orange_icon.png',
-        iconSize: [42, 42],
-        iconAnchor: [21, 42],
-        popupAnchor: [1, -34],
-        tooltipAnchor: [16, -28],
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        shadowSize: [42, 42]
-    });
-    var tractorIconRed = L.icon({
-        iconUrl: 'red_icon.png',
         iconSize: [42, 42],
         iconAnchor: [21, 42],
         popupAnchor: [1, -34],
@@ -176,55 +172,35 @@
         }
     ];
 
-    // Kundenstandorte mit Info-Symbolen und Popups hinzufügen
     customers.forEach(function(customer) {
-        var today = new Date();
-        today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-        // Marker für Kundenstandort hinzufügen
-        if (customer.hasOwnProperty("dueDate")) {
-            var due_data = customer.dueDate.split(".")
-            var day = parseInt(due_data[0])
-            var month = parseInt(due_data[1])
-            var year = parseInt(due_data[2])
-
-            var due_date = new Date(year, month - 1, day);
-            var short_time = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 14);
-            var medium_time = new Date(today.getFullYear(), today.getMonth() + 2, today.getDate());
-
-            if (short_time > due_date) {
-                var marker = L.marker(customer.location, {icon: tractorIconRed}).addTo(mymap);
-            } else if (medium_time > due_date) {
-                var marker = L.marker(customer.location, {icon: tractorIconOrange}).addTo(mymap)
-            } else {
-                var marker = L.marker(customer.location, {icon: tractorIconGreen}).addTo(mymap);
-            }
-        } else {
-            var marker = L.marker(customer.location, {icon: tractorIconBlack}).addTo(mymap);
-        }
-        // Popup mit Kundeninformationen und Buttons "Route planen" und "Auftrag ansehen" erstellen
+        var marker = L.marker(customer.location, {icon: tractorIconBlack}).addTo(mymap);
         var popupContent = "<b>" + customer.name + "</b><br>" +
             "Adresse: " + customer.address + "<br><br>" +
             "Telefon: " + customer.phone + "<br><br>" +
             "E-Mail: " + customer.email + "<br><br>" +
             "<button onclick=\"planRoute('" + customer.address + "')\">Route planen</button>" + "&nbsp;" +
             "<button onclick=\"viewOrder('" + customer.order + "', '" + customer.dueDate + "', " + customer.duration + ")\">Auftrag ansehen</button>";
-
-        // Popup zum Marker hinzufügen
         marker.bindPopup(popupContent);
     });
 
+    // Funktion zum Anzeigen der Eingabemaske
+    function toggleCustomerForm() {
+        var customerForm = document.getElementById("customerCard");
+        if (customerForm.style.display === "none") {
+            customerForm.style.display = "block";
+        } else {
+            customerForm.style.display = "none";
+        }
+    }
+
     // Funktion zum Anzeigen der Auftragsdetails in einem Popup-Fenster
     function viewOrder(order, dueDate, duration) {
-        // Konstruiere den HTML-Inhalt für das Popup-Fenster mit den Auftragsdetails
         var popupContent = "<div style='text-align: left; padding: 10px;'>" +
             "<h3 style='margin-bottom: 10px;'>Auftragsdetails</h3>" +
             "<p><b>Auftragsbezeichnung:</b> " + order + "</p>" +
             "<p><b>Fälligkeitsdatum:</b> " + dueDate + "</p>" +
             "<p><b>Geschätzte Dauer (Tage):</b> " + duration + "</p>" +
             "</div>";
-
-        // Zeige die Auftragsdetails in einem Popup-Fenster an
         alertify.alert('Auftragsdetails', popupContent).set({transition:'zoom'}).show();
     }
 
@@ -235,13 +211,9 @@
     function markCurrentLocation(position) {
         var latitude = position.coords.latitude;
         var longitude = position.coords.longitude;
-
         var marker = L.marker([latitude, longitude]).addTo(mymap);
         marker.bindPopup("Dein Standort").openPopup();
-
-        // Center the map on the user's location and zoom in
-        mymap.setView([latitude, longitude], 10); // Set the zoom level to
-        // 10
+        mymap.setView([latitude, longitude], 10); // Setze den Zoom-Level auf 10
     }
 
     // Funktion zum Abrufen der aktuellen Position
@@ -255,12 +227,8 @@
 
     // Funktion zum Planen einer Route
     function planRoute(address) {
-        // Generiere die URL für die Directions API von Google
         var url = "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(address);
-
-        // Öffne den Link in einem neuen Tab
         window.open(url, '_blank');
-
     }
 </script>
 
