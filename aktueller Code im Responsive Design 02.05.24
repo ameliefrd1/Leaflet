@@ -276,7 +276,7 @@
         // Kundenstandort auf der Karte markieren
         geocodeAddress(address, function(result) {
             if (result.success) {
-                var marker = L.marker([result.lat, result.lon], {icon: tractorIconBlack}).addTo(mymap);
+                var marker = L.marker([result.lat, result.lon], { icon: getIconByDuration(duration) }).addTo(mymap);
                 newCustomer.location = [result.lat, result.lon];
                 var popupContent = "<b>" + name + "</b><br>" +
                     "Adresse: " + address + "<br><br>" +
